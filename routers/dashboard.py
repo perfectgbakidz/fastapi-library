@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Book, Loan, User
 from datetime import date
+from dependencies import get_current_admin
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_admin)])
 
 @router.get("/stats")
 def get_dashboard_stats(db: Session = Depends(get_db)):
