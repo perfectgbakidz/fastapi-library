@@ -1,15 +1,15 @@
-from pydantic import BaseModel
 from datetime import date
 from typing import Optional
+from pydantic import BaseModel, Field
 
 class BookBase(BaseModel):
     title: str
     author: str
     isbn: str
-    quantity: int
+    quantity: int = Field(ge=0)
 
-class BookCreate(BookBase): pass
-class BookUpdate(BookBase): pass
+class BookCreate(BookBase): ...
+class BookUpdate(BookBase): ...
 
 class Book(BookBase):
     id: int
@@ -21,11 +21,17 @@ class UserBase(BaseModel):
     matric_no: str
     department: str
 
-class UserCreate(UserBase): pass
-class UserUpdate(UserBase): pass
+class UserCreate(UserBase):
+    password: str
+    role: str = "student"
+    admin_code: Optional[str] = None
+
+class UserUpdate(UserBase):
+    role: Optional[str] = None
 
 class User(UserBase):
     id: int
+    role: str
     class Config:
         from_attributes = True
 
@@ -38,3 +44,10 @@ class Loan(BaseModel):
     returned: bool
     class Config:
         from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    username: str | None = None
