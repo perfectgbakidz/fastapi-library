@@ -3,14 +3,15 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Loan, Book
 from datetime import date, timedelta
+from dependencies import get_current_user, get_current_admin
 
 router = APIRouter()
 
-@router.get("/active")
+@router.get("/active", dependencies=[Depends(get_current_admin)])
 def get_active_loans(db: Session = Depends(get_db)):
     return db.query(Loan).filter(Loan.returned == False).all()
 
-@router.post("/borrow")
+@router.post("/borrow", dependencies=[Depends(get_current_user)])
 def borrow_book(user_id: int, book_id: int, db: Session = Depends(get_db)):
     book = db.query(Book).get(book_id)
     if not book or book.quantity <= 0:
@@ -22,12 +23,12 @@ def borrow_book(user_id: int, book_id: int, db: Session = Depends(get_db)):
         due_date=date.today() + timedelta(days=14),
         returned=False
     )
-    db.add(loan)
     book.quantity -= 1
+    db.add(loan)
     db.commit()
     return {"detail": "Book borrowed"}
 
-@router.post("/{id}/return")
+@router.post("/{id}/return", dependencies=[Depends(get_current_user)])
 def return_book(id: int, db: Session = Depends(get_db)):
     loan = db.query(Loan).get(id)
     if not loan or loan.returned:
