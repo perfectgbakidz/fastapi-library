@@ -15,7 +15,6 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.matric_no == user_in.matric_no).first():
         raise HTTPException(status_code=400, detail="Matric number already registered")
     role = user_in.role or "student"
-    # Enforce admin code
     if role == "admin":
         if user_in.admin_code != ADMIN_CODE:
             raise HTTPException(status_code=403, detail="Invalid admin code")
@@ -29,9 +28,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     )
     db.add(user)
     db.commit()
-    # issue token
     access_token = create_access_token({"sub": user.matric_no})
     return Token(access_token=access_token)
+
 
 @router.post("/login", response_model=Token, summary="Login and get JWT token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -40,3 +39,15 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
     access_token = create_access_token({"sub": user.matric_no})
     return Token(access_token=access_token)
+
+
+@router.post("/forgot-password")
+def forgot_password(email: str):
+    # Placeholder: send reset email logic
+    return {"detail": "Password reset email sent."}
+
+
+@router.post("/reset-password")
+def reset_password(token: str, new_password: str):
+    # Placeholder: validate token and update password
+    return {"detail": "Password has been reset successfully."}
